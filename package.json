@@ -1,0 +1,22 @@
+{
+  "name": "autocontrol-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "backend": "cd backend && mvnw.cmd spring-boot:run",
+    "mobile": "cd mobile && npm start",
+    "mobile:android": "cd mobile && npm run android"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.1.1"
+  },
+  "devDependencies": {}
+}
