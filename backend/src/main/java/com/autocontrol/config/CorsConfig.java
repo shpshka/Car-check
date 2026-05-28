@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 public class CorsConfig {
@@ -17,7 +19,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedOrigins(parseOrigins())
+                        .allowedOriginPatterns(parseOrigins())
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*");
             }
@@ -25,6 +27,8 @@ public class CorsConfig {
     }
 
     private String[] parseOrigins() {
-        return allowedOrigins.split("\\s*,\\s*");
+        List<String> origins = new ArrayList<>(List.of(allowedOrigins.split("\\s*,\\s*")));
+        origins.add("https://*.vercel.app");
+        return origins.stream().filter(origin -> !origin.isBlank()).toArray(String[]::new);
     }
 }
