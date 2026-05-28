@@ -60,6 +60,7 @@ public class TransportService {
         );
     }
 
+    @Transactional
     public TransportResponse createTransport(TransportRequest request) {
         String plateNumber = normalizePlateNumber(request.plateNumber());
         if (transportRepository.existsByPlateNumberIgnoreCase(plateNumber)) {
@@ -67,9 +68,10 @@ public class TransportService {
         }
         Transport transport = new Transport();
         applyRequest(transport, request, plateNumber);
-        return toResponse(transportRepository.save(transport));
+        return toResponse(transportRepository.saveAndFlush(transport));
     }
 
+    @Transactional
     public TransportResponse updateTransport(Long id, TransportRequest request) {
         Transport transport = getTransport(id);
         String plateNumber = normalizePlateNumber(request.plateNumber());
@@ -79,7 +81,7 @@ public class TransportService {
             }
         });
         applyRequest(transport, request, plateNumber);
-        return toResponse(transportRepository.save(transport));
+        return toResponse(transportRepository.saveAndFlush(transport));
     }
 
     @Transactional
@@ -87,7 +89,9 @@ public class TransportService {
         if (!transportRepository.existsById(id)) {
             throw new IllegalArgumentException("Transport not found");
         }
-        transportRepository.deleteById(id);
+        Transport transport = getTransport(id);
+        transportRepository.delete(transport);
+        transportRepository.flush();
     }
 
     public TransportResponse toResponse(Transport transport) {
