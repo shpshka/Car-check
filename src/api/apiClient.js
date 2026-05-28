@@ -1,5 +1,5 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
-const REQUEST_TIMEOUT_MS = 4500;
+const REQUEST_TIMEOUT_MS = 30000;
 
 async function request(endpoint, options = {}) {
   const controller = new AbortController();
@@ -14,9 +14,9 @@ async function request(endpoint, options = {}) {
     ...options,
   }).catch((error) => {
     if (error.name === 'AbortError') {
-      throw new Error('Backend did not respond. Start Spring Boot on http://localhost:8080');
+      throw new Error('Backend did not respond. Render may still be waking up. Refresh the page in a few seconds.');
     }
-    throw new Error('Backend is unavailable. Start Spring Boot on http://localhost:8080');
+    throw new Error('Backend is unavailable. Check the Render backend service.');
   }).finally(() => window.clearTimeout(timeoutId));
 
   if (!response.ok) {
