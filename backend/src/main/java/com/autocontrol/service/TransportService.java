@@ -30,10 +30,12 @@ public class TransportService {
         this.problemRepository = problemRepository;
     }
 
+    @Transactional
     public List<TransportResponse> getAllTransports() {
         return transportRepository.findAll().stream().map(this::toResponse).toList();
     }
 
+    @Transactional
     public TransportDetailsResponse getTransportDetails(Long id) {
         Transport transport = getTransport(id);
         List<ProblemResponse> activeProblems = problemRepository.findByTransport_IdOrderByCreatedAtDesc(id).stream()
@@ -94,6 +96,7 @@ public class TransportService {
         transportRepository.flush();
     }
 
+    @Transactional
     public TransportResponse toResponse(Transport transport) {
         Inspection latest = latestInspection(transport.getId());
         return new TransportResponse(
@@ -111,6 +114,7 @@ public class TransportService {
         );
     }
 
+    @Transactional
     public TransportStatus calculateStatus(Transport transport) {
         if (problemRepository.countByTransport_IdAndStatusNot(transport.getId(), ProblemStatus.RESOLVED) > 0) {
             return TransportStatus.HAS_PROBLEMS;
