@@ -1,7 +1,13 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
-const REQUEST_TIMEOUT_MS = 30000;
+const REQUEST_TIMEOUT_MS = 60000;
+const RETRY_DELAY_MS = 2500;
+const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 
-async function request(endpoint, options = {}) {
+function sleep(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+async function request(endpoint, options = {}, attempt = 0) {
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
@@ -13,11 +19,23 @@ async function request(endpoint, options = {}) {
     signal: controller.signal,
     ...options,
   }).catch((error) => {
+    if (attempt < 1) {
+      return sleep(RETRY_DELAY_MS).then(() => request(endpoint, options, attempt + 1));
+    }
     if (error.name === 'AbortError') {
-      throw new Error('Backend did not respond. Render may still be waking up. Refresh the page in a few seconds.');
+      throw new Error('Backend did not respond. Render may still be waking up. Try again in a minute.');
     }
     throw new Error('Backend is unavailable. Check the Render backend service.');
   }).finally(() => window.clearTimeout(timeoutId));
+
+  if (response instanceof Response === false) {
+    return response;
+  }
+
+  if (RETRYABLE_STATUSES.has(response.status) && attempt < 1) {
+    await sleep(RETRY_DELAY_MS);
+    return request(endpoint, options, attempt + 1);
+  }
 
   if (!response.ok) {
     let message = `Request failed: ${response.status}`;
