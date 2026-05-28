@@ -55,12 +55,14 @@ public class InspectionService {
         return toResponse(saved);
     }
 
+    @Transactional
     public List<InspectionResponse> getInspectionsByTransport(Long transportId) {
         return inspectionRepository.findByTransport_IdOrderByInspectionDateDescCreatedAtDesc(transportId).stream()
                 .map(this::toResponse)
                 .toList();
     }
 
+    @Transactional
     public List<InspectionResponse> getAllInspections() {
         return inspectionRepository.findAllByOrderByInspectionDateDescCreatedAtDesc().stream()
                 .map(this::toResponse)

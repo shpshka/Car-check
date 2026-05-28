@@ -8,6 +8,7 @@ import com.autocontrol.entity.Transport;
 import com.autocontrol.repository.InspectionRepository;
 import com.autocontrol.repository.ReminderRepository;
 import com.autocontrol.repository.TransportRepository;
+import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -24,20 +25,24 @@ public class ReminderService {
         this.inspectionRepository = inspectionRepository;
     }
 
+    @Transactional
     public List<ReminderResponse> getAllReminders() {
         return reminderRepository.findAllByOrderByReminderDateAsc().stream().map(this::toResponse).toList();
     }
 
+    @Transactional
     public List<ReminderResponse> getDueReminders() {
         return reminderRepository.findByReminderDateLessThanEqualAndSentFalseOrderByReminderDateAsc(LocalDate.now()).stream()
                 .map(this::toResponse)
                 .toList();
     }
 
+    @Transactional
     public List<ReminderResponse> getRemindersByTransport(Long transportId) {
         return reminderRepository.findByTransport_IdOrderByReminderDateAsc(transportId).stream().map(this::toResponse).toList();
     }
 
+    @Transactional
     public ReminderResponse createReminder(ReminderRequest request) {
         Transport transport = transportRepository.findById(request.transportId()).orElseThrow(() -> new IllegalArgumentException("Transport not found"));
         Inspection inspection = request.inspectionId() == null ? null : inspectionRepository.findById(request.inspectionId()).orElseThrow(() -> new IllegalArgumentException("Inspection not found"));
@@ -48,13 +53,14 @@ public class ReminderService {
         reminder.setReminderDate(request.reminderDate());
         reminder.setMessage(request.message().trim());
         reminder.setSent(request.sent() != null && request.sent());
-        return toResponse(reminderRepository.save(reminder));
+        return toResponse(reminderRepository.saveAndFlush(reminder));
     }
 
+    @Transactional
     public ReminderResponse markAsSent(Long id) {
         Reminder reminder = reminderRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Reminder not found"));
         reminder.setSent(true);
-        return toResponse(reminderRepository.save(reminder));
+        return toResponse(reminderRepository.saveAndFlush(reminder));
     }
 
     public ReminderResponse toResponse(Reminder reminder) {
